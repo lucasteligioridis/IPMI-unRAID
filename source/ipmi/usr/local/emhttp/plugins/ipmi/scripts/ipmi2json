@@ -131,6 +131,14 @@ function ipmi_sensors_fans() {
 # 01 - 64  = 1% - 100%                      #
 #############################################
 
+#####################################################################
+# ASRock X570                                                       #
+# ipmi-raw 00 3a d6 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 #
+# ipmi-raw 00 3a d6 AA BB CC DD EE FF GG HH II JJ KK LL MM NN OO PP #
+# 00 = smartfan mode                                                #
+# 14 - 64  = 20% - 100%                                             #
+#####################################################################
+
 #############################################
 # ASRock Dual Socket
 # ipmi-raw 00 3a 01 CPU_1_OVERRIDE CPU_1 REAR_1 FRONT_1 FRONT_2 FRONT_3
@@ -146,15 +154,15 @@ function ipmi_sensors_fans() {
 $lun   = '00';
 $netfn = '3a';
 $com   = '01';
-$raw   = '00 3a 01';
+$raw   = '00 3a';
 $board_json = [];
 $board_tmp = $board;
 
 if ($cmd_count == 0){
     $fans_start = 0;
-    $fans_count = 7;
-    $auto  = '00 00 00 00 00 00 00 00';
-    $full  = '64 64 64 64 64 64 64 64';
+    $fans_count = 15;
+    $auto  = 'd8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00';
+    $full  = 'd6 64 64 64 64 64 64 64 64 64 64 64 64 64 64 64 64';
 }else{
     $fans_start = 1;
     $fans_count = 5;
@@ -172,7 +180,7 @@ for($i = 0; $i <= $cmd_count; $i++){
         $full  = '01 64 64 64';
     }
 
-    $raw = "${lun} ${netfn} ${i}1";
+    $raw = "${lun} ${netfn}";
 
     // set fans to full speed and get readings
     $cmd = "ipmi-raw $raw $full $fanopts 2>&1";

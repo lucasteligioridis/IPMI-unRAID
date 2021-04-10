@@ -128,6 +128,14 @@ if($daemon){
 #############################################
 
 #############################################
+# ASRock 570
+# ipmi-raw 00 3a d6 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+# ipmi-raw 00 3a d6 AA BB CC DD EE FF GG HH II JJ KK LL MM NN OO PP
+# 00 = smartfan mode
+# 01 - 64  = 1% - 100%
+#############################################
+
+#############################################
 # ASRock Dual Socket
 # ipmi-raw 00 3a 01 CPU_1_OVERRIDE CPU_1 REAR_1 FRONT_1 FRONT_2 FRONT_3
 # ipmi-raw 00 3a 11 CPU_2_OVERRIDE CPU_2 REAR_2 FRONT_4
@@ -205,7 +213,7 @@ function autofan() {
             $board0 = ($i == 0) ? $board : $board.$i;
             $raw    = $board_json[$board0]['raw'];
             $auto   = $board_json[$board0]['auto'];
-            $cmd   .= "ipmi-raw $raw $auto $fanopts 2>&1 >/dev/null &; ";
+            $cmd   .= "ipmi-raw $raw d8 $auto $fanopts 2>&1 >/dev/null";
         }
     }else{
         //if board is Supermicro
@@ -229,7 +237,7 @@ function fullfan() {
             $board0 = ($i == 0) ? $board : $board.$i;
             $raw    = $board_json[$board0]['raw'];
             $full   = $board_json[$board0]['full'];
-            $cmd   .= "ipmi-raw $raw $full $fanopts 2>&1 >/dev/null &; ";
+            $cmd   .= "ipmi-raw $raw d6 $full $fanopts 2>&1 >/dev/null &";
         }
     }else{
         //if board is Supermicro
@@ -321,6 +329,7 @@ $fan_count    = $fanpoll * 10;
 $hdd_count    = $hddpoll * 10;
 $curent_hex   = '';
 $current_hex2 = '';
+$manual_cmd = "ipmi-raw 00 3a d8 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 01 2>&1 >/dev/null;";
 
 fanlog('Starting Fan Control');
 
@@ -347,7 +356,7 @@ while(TRUE){ while(TRUE){
         $board0 = ($i == 0) ? $board : $board.$i;
         $raw    = $board_json[$board0]['raw'];
         $fans   = $board_json[$board0]['fans'];
-        $hex    = '';
+        $hex    = ' d6';
         $msg    = 'Fan:Temp';
         $cmd    = '';
         $exec   = false;
@@ -400,7 +409,7 @@ while(TRUE){ while(TRUE){
                 $msg .= ", ${fan}(${pct}%):".str_replace('Temperature','Temp',$name)."(${reading}°C)";
 
            }else{
-                $pwm ='00';
+                $pwm ='14';
            }
 
             if($board !== 'Supermicro'){
@@ -410,7 +419,7 @@ while(TRUE){ while(TRUE){
                     if($pwm == '00'){
                         $hex .= ' 00 00';
                     }else{
-                        $hex .= " 01 $pwm";
+                        $hex .= " d6 $pwm";
                     }
 
                 }else{
@@ -467,6 +476,7 @@ while(TRUE){ while(TRUE){
 
         // execute command if exec set
         if($exec){
+            shell_exec($manual_cmd);
             shell_exec($cmd);
             if($debug)
                 fanlog($cmd);
